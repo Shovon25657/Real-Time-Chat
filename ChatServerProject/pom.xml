@@ -19,14 +19,13 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>11.0.14</version>
+            <version>9.4.54.v20240208</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>11.0.14</version>
+            <version>9.4.54.v20240208</version>
         </dependency>
-
 
         <!-- Jetty WebSocket -->
         <dependency>
@@ -39,7 +38,18 @@
             <artifactId>websocket-api</artifactId>
             <version>9.4.54.v20240208</version>
         </dependency>
+
+        <!-- Java Servlet API -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
+
+
+
+
 
 
 
