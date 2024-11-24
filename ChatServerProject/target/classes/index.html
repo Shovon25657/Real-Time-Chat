@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #status { color: green; font-weight: bold; margin-bottom: 10px; }
+        #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+        #input { width: 80%; }
+        #send { width: 18%; }
+    </style>
+</head>
+<body>
+<h1>Chat Room</h1>
+<div id="status">Connecting...</div> <!-- Connection status -->
+<div id="messages"></div> <!-- Chat messages -->
+<input id="input" type="text" placeholder="Enter your message">
+<button id="send">Send</button>
+
+<script>
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sendButton = document.getElementById('send');
+    const statusDiv = document.getElementById('status');
+
+    // Initialize WebSocket connection
+    const ws = new WebSocket('ws://localhost:8080'); // WebSocket server address
+
+    // Update status when WebSocket connection is open
+    ws.onopen = () => {
+        statusDiv.textContent = "Connected to server.";
+        statusDiv.style.color = "green";
+        console.log("WebSocket connection established.");
+    };
+
+    // Handle incoming messages
+    ws.onmessage = (event) => {
+        console.log("Message received:", event.data);
+        const newMessage = document.createElement('div');
+        newMessage.textContent = event.data;
+        messagesDiv.appendChild(newMessage);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+
+    // Update status when WebSocket connection is closed
+    ws.onclose = () => {
+        statusDiv.textContent = "Disconnected from server.";
+        statusDiv.style.color = "red";
+        console.log("WebSocket connection closed.");
+    };
+
+    // Log errors to the console
+    ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        statusDiv.textContent = "An error occurred. Check the console for details.";
+        statusDiv.style.color = "orange";
+    };
+
+    // Send messages to the server
+    sendButton.onclick = () => {
+        const message = input.value;
+        if (message) {
+            ws.send(message);
+            console.log("Message sent:", message);
+            input.value = '';
+        }
+    };
+</script>
+</body>
+</html>
