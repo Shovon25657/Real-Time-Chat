@@ -18,6 +18,7 @@ import java.util.Map;
 public class ChatWebSocketHandler {
     private static final Map<Session, String> sessionUserMap = Collections.synchronizedMap(new HashMap<>());
     private static final String UPLOAD_DIR = "uploads/";
+    private static final int MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
     static {
         try {
@@ -57,28 +58,56 @@ public class ChatWebSocketHandler {
     @OnWebSocketMessage
     public void onMessage(Session session, byte[] payload, int offset, int length) {
         try {
-            String username = sessionUserMap.get(session);
-            String fileName = "file_" + System.currentTimeMillis() + ".png";
-            File file = new File(UPLOAD_DIR + fileName);
+            System.out.println("Received file size: " + length + " bytes");
 
-            // Validate that the payload is a PNG image
-            if (!isPng(payload)) {
-                session.getRemote().sendString("Server: Only PNG files are allowed.");
+            if (length > MAX_FILE_SIZE) {
+                session.getRemote().sendString("Server: File size exceeds the 10 MB limit.");
                 return;
             }
 
-            // Save the image
+            // Log file signature for debugging
+            System.out.print("File signature: ");
+            for (int i = 0; i < Math.min(12, payload.length); i++) {
+                System.out.printf("%02X ", payload[i]);
+            }
+            System.out.println();
+
+            String username = sessionUserMap.get(session);
+            String fileName;
+            File file;
+
+            // Check if the file is a PNG or MP4
+            if (isPng(payload)) {
+                fileName = "file_" + System.currentTimeMillis() + ".png";
+            } else if (isMp4(payload)) {
+                fileName = "file_" + System.currentTimeMillis() + ".mp4";
+            } else {
+                session.getRemote().sendString("Server: Only PNG and MP4 files are allowed.");
+                return;
+            }
+
+            file = new File(UPLOAD_DIR + fileName);
+
+            // Save the file
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(payload, offset, length);
             }
-            System.out.println("PNG file received from " + username + " and saved as " + fileName);
 
-            // Convert the file to a Base64 string for embedding
-            String base64Image = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
-            String imageHtml = "<img src='data:image/png;base64," + base64Image + "' style='max-width: 200px;' />";
+            System.out.println("File received from " + username + " and saved as " + fileName);
 
-            // Broadcast the embedded image
-            broadcast(username + " shared an image:<br>" + imageHtml);
+            // Embed the file in the chat
+            String fileHtml;
+
+            if (fileName.endsWith(".png")) {
+                String base64Image = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
+                fileHtml = "<img src='data:image/png;base64," + base64Image + "' style='max-width: 200px;' />";
+            } else {
+                String base64Video = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
+                fileHtml = "<video controls style='max-width: 200px;'><source src='data:video/mp4;base64," + base64Video + "' type='video/mp4'></video>";
+            }
+
+            // Broadcast the embedded file
+            broadcast(username + " shared a file:<br>" + fileHtml);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,6 +124,20 @@ public class ChatWebSocketHandler {
                 data[5] == (byte) 0x0A &&
                 data[6] == (byte) 0x1A &&
                 data[7] == (byte) 0x0A;
+    }
+
+    private boolean isMp4(byte[] data) {
+        // MP4 files start with a 'ftyp' box, which begins at byte 4
+        if (data.length < 12) return false;
+        for (int i = 0; i < data.length - 8; i++) {
+            if (data[i + 4] == (byte) 0x66 && // 'f'
+                    data[i + 5] == (byte) 0x74 && // 't'
+                    data[i + 6] == (byte) 0x79 && // 'y'
+                    data[i + 7] == (byte) 0x70) { // 'p'
+                return true;
+            }
+        }
+        return false;
     }
 
     private void broadcast(String message) {

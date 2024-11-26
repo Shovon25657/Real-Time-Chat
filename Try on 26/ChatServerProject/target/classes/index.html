@@ -129,7 +129,7 @@
     <div class="chat-footer">
         <div class="file-upload">
             <label for="fileInput">📎</label>
-            <input id="fileInput" type="file" accept="image/png">
+            <input id="fileInput" type="file" accept="image/png,video/mp4">
         </div>
         <input id="input" type="text" placeholder="Type your message">
         <button id="send">Send</button>
@@ -148,7 +148,7 @@
         username = prompt("Enter your username:");
     }
 
-    const ws = new WebSocket('ws://localhost:8080/chat');
+    const ws = new WebSocket('wss://6d6e-203-78-147-2.ngrok-free.app/chat');
 
     ws.onopen = () => {
         ws.send(username);
