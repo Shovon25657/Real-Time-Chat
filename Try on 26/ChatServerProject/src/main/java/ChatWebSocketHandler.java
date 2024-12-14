@@ -30,9 +30,20 @@ public class ChatWebSocketHandler {
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
-        sessionUserMap.put(session, null);
+        sessionUserMap.put(session, null); // Assign a null username initially
         System.out.println("Client connected: " + session.getRemoteAddress());
+
+        // Load the chat history from the database and send to the client
+        String chatHistory = ChatDatabase.loadMessages(); // Method that fetches chat messages as a formatted string
+
+        try {
+            // Send the chat history to the new client
+            session.getRemote().sendString(chatHistory);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
@@ -51,9 +62,14 @@ public class ChatWebSocketHandler {
             sessionUserMap.put(session, message);
             broadcast("Server: " + message + " has joined the chat.");
         } else {
+            // Save message to database
+            ChatDatabase.saveMessage(username, message);
+
+            // Broadcast to other users
             broadcast(username + ": " + message);
         }
     }
+
 
     @OnWebSocketMessage
     public void onMessage(Session session, byte[] payload, int offset, int length) {

@@ -148,20 +148,20 @@
         username = prompt("Enter your username:");
     }
 
-    const ws = new WebSocket('wss://6d6e-203-78-147-2.ngrok-free.app/chat');
+    const ws = new WebSocket('wss://3415-203-78-147-14.ngrok-free.app/chat');
 
     ws.onopen = () => {
         ws.send(username);
     };
 
-    ws.onmessage = (event) => {
-        const newMessage = document.createElement('div');
-        newMessage.innerHTML = event.data;
-        newMessage.classList.add(event.data.startsWith(username) ? 'user-message' : 'other-message');
-        newMessage.classList.add('message');
-        messagesDiv.appendChild(newMessage);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    };
+ws.onmessage = (event) => {
+    const newMessage = document.createElement('div');
+    newMessage.innerHTML = event.data;  // The event data contains chat history or a new message
+    newMessage.classList.add('other-message');
+    messagesDiv.appendChild(newMessage);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+};
+
 
     sendButton.onclick = () => {
         const message = input.value;
