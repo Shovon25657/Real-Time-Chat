@@ -33,16 +33,16 @@ public class ChatWebSocketHandler {
         sessionUserMap.put(session, null); // Assign a null username initially
         System.out.println("Client connected: " + session.getRemoteAddress());
 
-        // Load the chat history from the database and send to the client
-        String chatHistory = ChatDatabase.loadMessages(); // Method that fetches chat messages as a formatted string
-
+        // Load the chat history from the database
         try {
-            // Send the chat history to the new client
-            session.getRemote().sendString(chatHistory);
+            // Use ChatDatabase to load messages in JSON format
+            String chatHistoryJson = ChatDatabase.loadMessagesAsJson(); // Convert messages to JSON
+            session.getRemote().sendString(chatHistoryJson); // Send the JSON to the client
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
 
     @OnWebSocketClose

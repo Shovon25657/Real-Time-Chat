@@ -73,9 +73,9 @@ public class ChatServer {
 
     static void sendChatHistory(PrintWriter writer) {
         synchronized (chatHistory) {
-            // Fetch the last 10 messages from the database
             try (Connection conn = DatabaseConnection.getConnection()) {
-                String query = "SELECT username, message, timestamp FROM messages ORDER BY timestamp DESC LIMIT 10";
+                // Fetch the oldest messages first
+                String query = "SELECT username, message, timestamp FROM messages ORDER BY timestamp ASC LIMIT 10";
                 try (var stmt = conn.prepareStatement(query); var rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         String username = rs.getString("username");
@@ -89,5 +89,6 @@ public class ChatServer {
             }
         }
     }
+
 
 }
