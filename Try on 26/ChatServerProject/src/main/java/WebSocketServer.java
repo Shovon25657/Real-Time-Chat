@@ -17,9 +17,10 @@ public class WebSocketServer {
 
         // File serving servlet
         ServletHolder fileHolder = new ServletHolder("files", DefaultServlet.class);
-        fileHolder.setInitParameter("resourceBase", System.getProperty("user.dir") + "/uploads"); // Absolute path
-        fileHolder.setInitParameter("dirAllowed", "true"); // Allow directory browsing for debug purposes
-        context.addServlet(fileHolder, "/download/*");
+        fileHolder.setInitParameter("resourceBase", System.getProperty("user.dir") + "/uploads");
+        fileHolder.setInitParameter("dirAllowed", "true");
+        context.addServlet(fileHolder, "/uploads/*");
+
 
         server.start();
         System.out.println("Server started at http://localhost:8080");

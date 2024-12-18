@@ -173,40 +173,65 @@
         username = prompt("Enter your username:");
     }
 
-    const ws = new WebSocket('wss://3415-203-78-147-14.ngrok-free.app/chat');
+   const ws = new WebSocket('wss://4673-2a09-bac5-485-25af-00-3c1-4b.ngrok-free.app/chat');
 
     ws.onopen = () => {
         ws.send(username);
     };
 
 ws.onmessage = (event) => {
-    let data = event.data;
+    const data = JSON.parse(event.data);
 
-    try {
-        // Check if the data is JSON (chat history or structured message)
-        let messages = JSON.parse(data);
-
-        if (Array.isArray(messages)) {
-            // If it's a chat history array
-            messages.forEach(message => {
-                appendMessage(message.timestamp, message.username, message.text);
-            });
-        } else {
-            // If it's a single message object
-            appendMessage(messages.timestamp, messages.username, messages.text);
-        }
-    } catch (e) {
-        // If the message is not JSON, append it as a plain message
-        console.error("Failed to parse JSON:", e);
-        const newMessage = document.createElement('div');
-        newMessage.classList.add('other-message');
-        newMessage.innerText = data; // Append raw data
-        messagesDiv.appendChild(newMessage);
+    if (Array.isArray(data)) {
+        // If it's an array (chat history), render all messages
+        data.forEach((message) => renderMessage(message));
+    } else {
+        // If it's a single message, render it directly
+        renderMessage(data);
     }
 
-    // Scroll to the bottom after appending
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the latest message
 };
+
+
+
+function renderMessage(message) {
+    const newMessage = document.createElement('div');
+    newMessage.classList.add('message');
+
+    if (message.file_path) {
+        // For multimedia messages
+        if (message.file_type === 'image') {
+            newMessage.innerHTML = `
+                <div>
+                    <span class="timestamp">[${message.timestamp}]</span>
+                    <strong class="username">${message.username}</strong>:
+                    <img src="/uploads/${message.file_path}" alt="Image" style="max-width: 200px;" />
+                </div>`;
+        } else if (message.file_type === 'video') {
+            newMessage.innerHTML = `
+                <div>
+                    <span class="timestamp">[${message.timestamp}]</span>
+                    <strong class="username">${message.username}</strong>:
+                    <video controls style="max-width: 200px;">
+                        <source src="/uploads/${message.file_path}" type="video/mp4">
+                    </video>
+                </div>`;
+        }
+    } else {
+        // For text messages
+        newMessage.innerHTML = `
+            <div>
+                <span class="timestamp">[${message.timestamp}]</span>
+                <strong class="username">${message.username}</strong>:
+                <span class="text">${message.text}</span>
+            </div>`;
+    }
+
+    messagesDiv.appendChild(newMessage);
+}
+
+
 
 function appendMessage(timestamp, username, text) {
     const newMessage = document.createElement('div');
@@ -254,16 +279,25 @@ function appendMessage(timestamp, username, text) {
         }
     };
 
-    fileInput.onchange = () => {
-        const file = fileInput.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                ws.send(reader.result);
-            };
-            reader.readAsArrayBuffer(file);
+fileInput.onchange = () => {
+    const file = fileInput.files[0];
+    if (file) {
+        if (file.size > 10 * 1024 * 1024) { // Check if file exceeds 10 MB
+            alert("File size exceeds the 10 MB limit.");
+            return;
         }
-    };
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const arrayBuffer = reader.result;
+            ws.send(arrayBuffer); // Send file as binary data
+        };
+        reader.readAsArrayBuffer(file); // Read file as ArrayBuffer
+    } else {
+        alert("No file selected or invalid file.");
+    }
+};
+
 
     input.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
