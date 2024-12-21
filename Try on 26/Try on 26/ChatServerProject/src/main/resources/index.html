@@ -35,15 +35,101 @@
             overflow: hidden;
         }
 
-        .chat-header {
+      .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 20px;
             background: linear-gradient(135deg, #4f46e5, #6366f1);
             color: #fff;
+            gap: 16px;
+        }
+
+//search
+
+  .header-title {
             font-size: 20px;
             font-weight: 600;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
         }
+
+
+         .search-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 600px;
+        }
+
+  .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 6px 12px;
+            flex: 1;
+        }
+
+
+         .search-input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            width: 100%;
+            outline: none;
+        }
+
+          .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+           .search-icon {
+            color: white;
+            margin-right: 8px;
+        }
+
+      .highlight {
+    background-color:rgb(229, 44, 44);
+    padding: 2px;
+    border-radius: 2px;
+}
+
+         .search-results {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: none;
+        }
+
+       .search-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+
+        .search-nav button {
+            padding: 2px 8px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-nav button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
 
         .chat-messages {
             flex: 1;
@@ -330,9 +416,23 @@
     </style>
 </head>
 <body>
+
 <div class="chat-container">
     <div class="chat-header">
-        Modern Chat Room
+        <div class="header-title">Modern Chat Room</div>
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" placeholder="Search messages..." id="searchInput">
+            </div>
+            <div class="search-results" id="searchResults">
+                <span id="resultCount"></span>
+                <div class="search-nav">
+                    <button id="prevResult">↑</button>
+                    <button id="nextResult">↓</button>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="chat-messages" id="messages">
         <!-- Chat messages will appear here -->
@@ -371,8 +471,119 @@
         const emojiButton = document.getElementById('emojiButton');
         const emojiPicker = document.getElementById('emojiPicker');
 
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const resultCount = document.getElementById('resultCount');
+    const prevResult = document.getElementById('prevResult');
+    const nextResult = document.getElementById('nextResult');
+
         let username = null;
         let selectedFile = null;
+    let currentMatchIndex = -1;
+    let matches = [];
+
+
+    function performSearch(searchTerm) {
+        // Remove existing highlights
+        const existingHighlights = messagesDiv.querySelectorAll('.highlight');
+        existingHighlights.forEach(highlight => {
+            const parent = highlight.parentNode;
+            parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+        });
+
+        if (!searchTerm) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+ // Find all message text elements
+        const messageTexts = messagesDiv.querySelectorAll('.message-content .text');
+        matches = [];
+
+        messageTexts.forEach((element, elementIndex) => {
+            const text = element.textContent;
+            const regex = new RegExp(searchTerm, 'gi');
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                matches.push({
+                    element: element,
+                    position: match.index,
+                    text: match[0]
+                });
+            }
+        });
+
+
+ // Highlight matches
+        matches.forEach(match => {
+            const text = match.element.textContent;
+            const highlightedText = text.replace(
+                new RegExp(searchTerm, 'gi'),
+                match => `<span class="highlight">${match}</span>`
+            );
+            match.element.innerHTML = highlightedText;
+        });
+
+        // Update search results UI
+        if (matches.length > 0) {
+            searchResults.style.display = 'block';
+            currentMatchIndex = 0;
+            scrollToMatch(currentMatchIndex);
+            updateResultCount();
+        } else {
+            searchResults.style.display = 'block';
+            resultCount.textContent = 'No matches found';
+        }
+    }
+
+function scrollToMatch(index) {
+        if (matches[index]) {
+            const element = matches[index].element;
+            const highlight = element.querySelector('.highlight');
+            if (highlight) {
+                highlight.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+    }
+
+    function updateResultCount() {
+        if (matches.length > 0) {
+            resultCount.textContent = `${currentMatchIndex + 1} of ${matches.length} matches`;
+        }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        performSearch(e.target.value);
+    });
+
+    prevResult.addEventListener('click', () => {
+        if (matches.length > 0) {
+            currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+            scrollToMatch(currentMatchIndex);
+            updateResultCount();
+        }
+    });
+
+    nextResult.addEventListener('click', () => {
+        if (matches.length > 0) {
+            currentMatchIndex = (currentMatchIndex + 1) % matches.length;
+            scrollToMatch(currentMatchIndex);
+            updateResultCount();
+        }
+    });
+
+    // Add search shortcut (Ctrl/Cmd + F)
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+    });
+
 
         // Emoji categories and their emojis
         const emojiCategories = {
