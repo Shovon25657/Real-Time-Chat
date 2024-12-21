@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/emoji-mart.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/emoji-mart.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
     <title>Modern Chat Room</title>
     <style>
         * {
@@ -170,6 +167,24 @@
             pointer-events: none;
         }
 
+        .emoji-button {
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #4f46e5;
+            font-size: 20px;
+            transition: background-color 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-button:hover {
+            background: #e5e7eb;
+        }
+
         .file-upload {
             display: inline-flex;
             align-items: center;
@@ -264,21 +279,45 @@
             box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
         }
 
-        #emoji-suggestions {
+        .emoji-picker {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 8px;
+            display: none;
+            z-index: 1000;
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
         }
 
-        #emoji-suggestions div {
-            padding: 8px 12px;
+        .emoji-category {
+            margin-bottom: 12px;
+        }
+
+        .emoji-category-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+
+        .emoji-item {
             cursor: pointer;
-            border-radius: 8px;
+            padding: 4px;
+            border-radius: 4px;
+            text-align: center;
             transition: background-color 0.2s;
         }
 
-        #emoji-suggestions div:hover {
+        .emoji-item:hover {
             background: #f3f4f6;
         }
 
@@ -291,8 +330,6 @@
     </style>
 </head>
 <body>
-<div id="emoji-suggestions" style="position: absolute; display: none; border: 1px solid #ccc; background: white;"></div>
-
 <div class="chat-container">
     <div class="chat-header">
         Modern Chat Room
@@ -313,215 +350,261 @@
             <input id="fileInput" type="file" accept="image/png,image/jpeg,image/gif,video/mp4">
         </div>
         <div id="input" class="text-input" contenteditable="true" placeholder="Type your message..."></div>
+        <button id="emojiButton" class="emoji-button">😊</button>
         <button id="send" class="send-button">Send</button>
     </div>
 </div>
 
+<div id="emojiPicker" class="emoji-picker">
+    <!-- Emoji picker content will be generated dynamically -->
+</div>
+
 <script>
     const messagesDiv = document.getElementById('messages');
-    const input = document.getElementById('input');
-    const sendButton = document.getElementById('send');
-    const fileInput = document.getElementById('fileInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const imagePreview = document.getElementById('imagePreview');
-    const deletePreviewBtn = document.getElementById('deletePreview');
-    const sendPreviewBtn = document.getElementById('sendPreview');
+        const input = document.getElementById('input');
+        const sendButton = document.getElementById('send');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const deletePreviewBtn = document.getElementById('deletePreview');
+        const sendPreviewBtn = document.getElementById('sendPreview');
+        const emojiButton = document.getElementById('emojiButton');
+        const emojiPicker = document.getElementById('emojiPicker');
 
-    let username = null;
-    let selectedFile = null;
+        let username = null;
+        let selectedFile = null;
 
-    while (!username) {
-        username = prompt("Enter your username:");
-    }
+        // Emoji categories and their emojis
+        const emojiCategories = {
+            "Smileys & Emotion": ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", "😉", "😌", "😍", "🥰", "😘"],
+            "People & Body": ["👋", "🤚", "✋", "🖐️", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟", "🤘", "🤙", "👈", "👉"],
+            "Animals & Nature": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵"],
+            "Food & Drink": ["🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥"],
+            "Activities": ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑"],
+            "Objects": ["⌚", "📱", "📲", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "🕹️", "🗜️", "💽", "💾", "💿", "📀"]
+        };
 
-    const ws = new WebSocket('wss://9534-203-78-147-0.ngrok-free.app/chat');
-
-    ws.onopen = () => {
-        ws.send(username);
-    };
-
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-
-        if (Array.isArray(data)) {
-            data.forEach((message) => renderMessage(message));
-        } else {
-            renderMessage(data);
-        }
-
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    };
-
-    function renderMessage(message) {
-        const newMessage = document.createElement('div');
-        const messageClass = message.username === username ? 'sender-message' : 'receiver-message';
-        newMessage.className = `message ${messageClass}`;
-
-        let contentHtml = '';
-        if (message.file_path) {
-            if (message.file_type === 'image') {
-                contentHtml = `<img src="/uploads/${message.file_path}" alt="Image" />`;
-            } else if (message.file_type === 'video') {
-                contentHtml = `
-                    <video controls>
-                        <source src="/uploads/${message.file_path}" type="video/mp4">
-                    </video>`;
+        // Generate emoji picker content
+        function generateEmojiPicker() {
+            let html = '';
+            for (const [category, emojis] of Object.entries(emojiCategories)) {
+                html += `
+                    <div class="emoji-category">
+                        <div class="emoji-category-title">${category}</div>
+                        <div class="emoji-grid">
+                            ${emojis.map(emoji => `
+                                <div class="emoji-item" data-emoji="${emoji}">${emoji}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
             }
-        } else {
-            contentHtml = `<span class="text">${message.text}</span>`;
-        }
+            emojiPicker.innerHTML = html;
 
-        newMessage.innerHTML = `
-            <span class="username">${message.username}</span>
-            <div class="message-content">
-                ${contentHtml}
-            </div>
-            <span class="timestamp">${message.timestamp}</span>
-        `;
-
-        messagesDiv.appendChild(newMessage);
-    }
-
-    function appendMessage(timestamp, username, text) {
-        const newMessage = document.createElement('div');
-        const messageClass = username === window.username ? 'sender-message' : 'receiver-message';
-        newMessage.className = `message ${messageClass}`;
-
-        newMessage.innerHTML = `
-            <span class="username">${username}</span>
-            <div class="message-content">
-                <span class="text">${text}</span>
-            </div>
-            <span class="timestamp">${timestamp}</span>
-        `;
-        messagesDiv.appendChild(newMessage);
-    }
-
-    function fetchMessages() {
-        fetch('/getMessages')
-            .then(response => response.json())
-            .then(messages => {
-                messages.forEach(message => {
-                    appendMessage(message.timestamp, message.username, message.text);
+            // Add click event listeners to emoji items
+            const emojiItems = emojiPicker.querySelectorAll('.emoji-item');
+            emojiItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const emoji = item.getAttribute('data-emoji');
+                    insertEmoji(emoji);
+                    emojiPicker.style.display = 'none';
                 });
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
-    }
+        }
 
-    window.onload = fetchMessages;
+        // Insert emoji at cursor position or at the end
+        function insertEmoji(emoji) {
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
 
-    fileInput.onchange = () => {
-        const file = fileInput.files[0];
-        if (file) {
-            if (file.size > 10 * 1024 * 1024) {
-                alert("File size exceeds the 10 MB limit.");
-                return;
+            // Create a text node with the emoji
+            const emojiNode = document.createTextNode(emoji);
+
+            // If the input is empty, just append the emoji
+            if (input.innerHTML.trim() === '') {
+                input.innerHTML = '';
+                input.appendChild(emojiNode);
+            } else {
+                // Insert at cursor position
+                range.insertNode(emojiNode);
             }
 
-            selectedFile = file;
+            // Move cursor after the emoji
+            range.setStartAfter(emojiNode);
+            range.setEndAfter(emojiNode);
+            selection.removeAllRanges();
+            selection.addRange(range);
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                previewContainer.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
+            // Focus back on input
+            input.focus();
         }
-    };
 
-    deletePreviewBtn.onclick = () => {
-        previewContainer.style.display = 'none';
-        imagePreview.src = '';
-        selectedFile = null;
-        fileInput.value = '';
-    };
-
-    sendPreviewBtn.onclick = () => {
-        if (selectedFile) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const arrayBuffer = reader.result;
-                ws.send(arrayBuffer);
-
-                previewContainer.style.display = 'none';
-                imagePreview.src = '';
-                selectedFile = null;
-                fileInput.value = '';
-            };
-            reader.readAsArrayBuffer(selectedFile);
-        }
-    };
-
-    const emojiMap = {
-        ":smile:": "😄",
-        ":heart:": "❤️",
-        ":thumbsup:": "👍",
-        ":laugh:": "😂",
-        ":cry:": "😢",
-    };
-
-    const chatInput = document.getElementById("input");
-    const suggestionsBox = document.getElementById("emoji-suggestions");
-
-
-chatInput.addEventListener("input", () => {
-    const text = chatInput.innerText;
-    const lastWord = text.split(" ").pop();
-
-    const matches = Object.keys(emojiMap).filter((key) =>
-        key.startsWith(lastWord)
-    );
-
-    if (matches.length > 0) {
-        suggestionsBox.innerHTML = matches
-            .map((key) => `<div data-emoji="${key}">${key} ${emojiMap[key]}</div>`)
-            .join("");
-        suggestionsBox.style.display = "block";
-
-        const rect = chatInput.getBoundingClientRect();
-        suggestionsBox.style.top = `${rect.bottom + window.scrollY}px`;
-        suggestionsBox.style.left = `${rect.left + window.scrollX}px`;
-
-        suggestionsBox.querySelectorAll("div").forEach((div) => {
-            div.addEventListener("click", () => {
-                const selectedEmoji = emojiMap[div.getAttribute("data-emoji")];
-
-                chatInput.innerHTML = chatInput.innerHTML.replace(
-                    new RegExp(`${lastWord}$`),
-                    selectedEmoji
-                );
-
-                suggestionsBox.style.display = "none";
-                chatInput.focus();
-            });
+        // Toggle emoji picker
+        emojiButton.addEventListener('click', () => {
+            if (emojiPicker.style.display === 'none' || !emojiPicker.style.display) {
+                emojiPicker.style.display = 'block';
+            } else {
+                emojiPicker.style.display = 'none';
+            }
         });
-    } else {
-        suggestionsBox.style.display = "none";
-    }
-});
 
-input.addEventListener("keypress", (event) => {
-    if (event.key === "Enter") {
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+                emojiPicker.style.display = 'none';
+            }
+        });
+
+        // Initialize emoji picker
+        generateEmojiPicker();
+
+        while (!username) {
+            username = prompt("Enter your username:");
+        }
+
+        const ws = new WebSocket('wss://9534-203-78-147-0.ngrok-free.app/chat');
+
+        ws.onopen = () => {
+            ws.send(username);
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (Array.isArray(data)) {
+                data.forEach((message) => renderMessage(message));
+            } else {
+                renderMessage(data);
+            }
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        function renderMessage(message) {
+            const newMessage = document.createElement('div');
+            const messageClass = message.username === username ? 'sender-message' : 'receiver-message';
+            newMessage.className = `message ${messageClass}`;
+
+            let contentHtml = '';
+            if (message.file_path) {
+                if (message.file_type === 'image') {
+                    contentHtml = `<img src="/uploads/${message.file_path}" alt="Image" />`;
+                } else if (message.file_type === 'video') {
+                    contentHtml = `
+                        <video controls>
+                            <source src="/uploads/${message.file_path}" type="video/mp4">
+                        </video>`;
+                }
+            } else {
+                // Ensure the message text is properly escaped but preserve emojis
+                const textContent = document.createElement('div');
+                textContent.textContent = message.text;
+                contentHtml = `<span class="text">${textContent.innerHTML}</span>`;
+            }
+
+            newMessage.innerHTML = `
+                <span class="username">${message.username}</span>
+                <div class="message-content">
+                    ${contentHtml}
+                </div>
+                <span class="timestamp">${message.timestamp}</span>
+            `;
+
+            messagesDiv.appendChild(newMessage);
+        }
+        function appendMessage(timestamp, username, text) {
+            const newMessage = document.createElement('div');
+            const messageClass = username === window.username ? 'sender-message' : 'receiver-message';
+            newMessage.className = `message ${messageClass}`;
+
+            newMessage.innerHTML = `
+                <span class="username">${username}</span>
+                <div class="message-content">
+                    <span class="text">${text}</span>
+                </div>
+                <span class="timestamp">${timestamp}</span>
+            `;
+            messagesDiv.appendChild(newMessage);
+        }
+
+        function fetchMessages() {
+            fetch('/getMessages')
+                .then(response => response.json())
+                .then(messages => {
+                    messages.forEach(message => {
+                        appendMessage(message.timestamp, message.username, message.text);
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                });
+        }
+
+        window.onload = fetchMessages;
+
+        fileInput.onchange = () => {
+            const file = fileInput.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert("File size exceeds the 10 MB limit.");
+                    return;
+                }
+
+                selectedFile = file;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        deletePreviewBtn.onclick = () => {
+            previewContainer.style.display = 'none';
+            imagePreview.src = '';
+            selectedFile = null;
+            fileInput.value = '';
+        };
+
+        sendPreviewBtn.onclick = () => {
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const arrayBuffer = reader.result;
+                    ws.send(arrayBuffer);
+
+                    previewContainer.style.display = 'none';
+                    imagePreview.src = '';
+                    selectedFile = null;
+                    fileInput.value = '';
+                };
+                reader.readAsArrayBuffer(selectedFile);
+            }
+        };
+
+        input.addEventListener("keypress", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                if (selectedFile) {
+                    sendPreviewBtn.click();
+                } else {
+                    sendButton.click();
+                }
+                event.preventDefault();
+            }
+        });
+
+    sendButton.onclick = () => {
         if (selectedFile) {
             sendPreviewBtn.click();
         } else {
-            sendButton.click();
+            const message = input.innerHTML.trim();
+            if (message) {
+                // Send the actual text content including emojis
+                ws.send(input.innerText);
+                input.innerHTML = '';
+            }
         }
-        event.preventDefault();
-    }
-});
-
-sendButton.onclick = () => {
-    if (selectedFile) {
-        sendPreviewBtn.click();
-    } else {
-        const message = input.innerHTML.trim();
-        if (message) {
-            ws.send(message);
-            input.innerHTML = '';
-        }
-    }
-};
+        };
 </script>
 </body>
 </html>
