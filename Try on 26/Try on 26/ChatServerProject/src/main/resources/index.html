@@ -3,31 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/emoji-mart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/emoji-mart.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <title>Modern Chat Room</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: #f3f4f6;
+            min-height: 100vh;
+            background: #f0f2f5;
             color: #333;
+            padding: 20px;
         }
 
         .chat-container {
-            width: 90%;
-            max-width: 600px;
-            height: 80%;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -35,115 +40,259 @@
 
         .chat-header {
             padding: 20px;
-            background: #4a90e2;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
             color: #fff;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 20px;
+            font-weight: 600;
             text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
-            background: #eef2f5;
+            background: #ffffff;
+            scroll-behavior: smooth;
         }
 
-        .chat-messages div {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 8px;
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 16px;
             max-width: 70%;
+            clear: both;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.4;
         }
 
-        .chat-messages .user-message {
-            background: #4a90e2;
-            color: #fff;
-            align-self: flex-end;
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 16px;
+            position: relative;
+            word-wrap: break-word;
         }
 
-        .chat-messages .other-message {
-            background: #fff;
-            border: 1px solid #ddd;
-            align-self: flex-start;
+        .sender-message {
+            float: right;
+            margin-left: 30%;
+        }
+
+        .sender-message .message-content {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .receiver-message {
+            float: left;
+            margin-right: 30%;
+        }
+
+        .receiver-message .message-content {
+            background: #f0f2f5;
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message img, .message video {
+            max-width: 300px;
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .sender-message .username {
+            color: #4f46e5;
+            text-align: right;
+        }
+
+        .receiver-message .username {
+            color: #4b5563;
         }
 
         .chat-footer {
             display: flex;
-            padding: 15px;
-            border-top: 1px solid #ddd;
-            background: #f9f9f9;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            gap: 12px;
+            align-items: flex-end;
         }
 
-        .chat-footer input {
+        .text-input {
             flex: 1;
-            padding: 10px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-right: 10px;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 24px;
+            min-height: 48px;
+            max-height: 120px;
+            outline: none;
+            overflow-y: auto;
+            transition: border-color 0.2s;
+            background: #ffffff;
         }
 
-        .chat-footer button {
-            padding: 10px 15px;
-            background: #4a90e2;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
+        .text-input:focus {
+            border-color: #4f46e5;
         }
 
-        .chat-footer button:hover {
-            background: #3a78c4;
+        .text-input:empty::before {
+            content: attr(placeholder);
+            color: #9ca3af;
+            pointer-events: none;
         }
 
         .file-upload {
-            margin-right: 10px;
-            display: inline-block;
-            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
         }
 
         .file-upload label {
-            padding: 10px;
-            background: #ddd;
-            border-radius: 5px;
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 50%;
             cursor: pointer;
-            color: #333;
-            font-size: 14px;
+            color: #4f46e5;
+            font-size: 20px;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-upload label:hover {
+            background: #e5e7eb;
         }
 
         .file-upload input {
             display: none;
         }
 
-            .timestamp {
-        font-size: 0.9em;
-        color: #888; /* Grey for timestamps */
-        margin-right: 5px;
-    }
-    .username {
-        font-weight: bold;
-        color: #4a90e2; /* Blue for usernames */
-        margin-right: 5px;
-    }
-    .text {
-        font-size: 1em;
-        color: #333; /* Default text color */
-    }
-    .message {
-        margin-bottom: 10px; /* Space between messages */
-        padding: 5px 10px;
-        border-radius: 5px;
-        background: #f9f9f9;
-        border: 1px solid #ddd;
-    }
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
+        .send-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
 
+        .preview-container {
+            display: none;
+            padding: 16px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
 
+        .preview-image {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 12px;
+            margin-right: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .preview-controls button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .delete-preview {
+            background: #ef4444;
+            color: white;
+        }
+
+        .delete-preview:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .send-preview {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+        }
+
+        .send-preview:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        #emoji-suggestions {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 8px;
+        }
+
+        #emoji-suggestions div {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        #emoji-suggestions div:hover {
+            background: #f3f4f6;
+        }
+
+        /* Clear fix for floating messages */
+        .chat-messages::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
     </style>
 </head>
 <body>
+<div id="emoji-suggestions" style="position: absolute; display: none; border: 1px solid #ccc; background: white;"></div>
+
 <div class="chat-container">
     <div class="chat-header">
         Modern Chat Room
@@ -151,13 +300,20 @@
     <div class="chat-messages" id="messages">
         <!-- Chat messages will appear here -->
     </div>
+    <div class="preview-container" id="previewContainer">
+        <img id="imagePreview" class="preview-image" />
+        <div class="preview-controls">
+            <button class="delete-preview" id="deletePreview">Delete</button>
+            <button class="send-preview" id="sendPreview">Send</button>
+        </div>
+    </div>
     <div class="chat-footer">
         <div class="file-upload">
             <label for="fileInput">📎</label>
-            <input id="fileInput" type="file" accept="image/png,video/mp4">
+            <input id="fileInput" type="file" accept="image/png,image/jpeg,image/gif,video/mp4">
         </div>
-        <input id="input" type="text" placeholder="Type your message">
-        <button id="send">Send</button>
+        <div id="input" class="text-input" contenteditable="true" placeholder="Type your message..."></div>
+        <button id="send" class="send-button">Send</button>
     </div>
 </div>
 
@@ -166,144 +322,206 @@
     const input = document.getElementById('input');
     const sendButton = document.getElementById('send');
     const fileInput = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const deletePreviewBtn = document.getElementById('deletePreview');
+    const sendPreviewBtn = document.getElementById('sendPreview');
 
     let username = null;
+    let selectedFile = null;
 
     while (!username) {
         username = prompt("Enter your username:");
     }
 
-    const ws = new WebSocket('wss://0c39-203-78-147-8.ngrok-free.app/chat');
+    const ws = new WebSocket('wss://9534-203-78-147-0.ngrok-free.app/chat');
 
     ws.onopen = () => {
         ws.send(username);
     };
 
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-    if (Array.isArray(data)) {
-        // If it's an array (chat history), render all messages
-        data.forEach((message) => renderMessage(message));
-    } else {
-        // If it's a single message, render it directly
-        renderMessage(data);
-    }
-
-    messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the latest message
-};
-
-
-
-function renderMessage(message) {
-    const newMessage = document.createElement('div');
-    newMessage.classList.add('message');
-
-    if (message.file_path) {
-        // For multimedia messages
-        if (message.file_type === 'image') {
-            newMessage.innerHTML = `
-                <div>
-                    <span class="timestamp">[${message.timestamp}]</span>
-                    <strong class="username">${message.username}</strong>:
-                    <img src="/uploads/${message.file_path}" alt="Image" style="max-width: 200px;" />
-                </div>`;
-        } else if (message.file_type === 'video') {
-            newMessage.innerHTML = `
-                <div>
-                    <span class="timestamp">[${message.timestamp}]</span>
-                    <strong class="username">${message.username}</strong>:
-                    <video controls style="max-width: 200px;">
-                        <source src="/uploads/${message.file_path}" type="video/mp4">
-                    </video>
-                </div>`;
+        if (Array.isArray(data)) {
+            data.forEach((message) => renderMessage(message));
+        } else {
+            renderMessage(data);
         }
-    } else {
-        // For text messages
+
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+
+    function renderMessage(message) {
+        const newMessage = document.createElement('div');
+        const messageClass = message.username === username ? 'sender-message' : 'receiver-message';
+        newMessage.className = `message ${messageClass}`;
+
+        let contentHtml = '';
+        if (message.file_path) {
+            if (message.file_type === 'image') {
+                contentHtml = `<img src="/uploads/${message.file_path}" alt="Image" />`;
+            } else if (message.file_type === 'video') {
+                contentHtml = `
+                    <video controls>
+                        <source src="/uploads/${message.file_path}" type="video/mp4">
+                    </video>`;
+            }
+        } else {
+            contentHtml = `<span class="text">${message.text}</span>`;
+        }
+
         newMessage.innerHTML = `
-            <div>
-                <span class="timestamp">[${message.timestamp}]</span>
-                <strong class="username">${message.username}</strong>:
-                <span class="text">${message.text}</span>
-            </div>`;
+            <span class="username">${message.username}</span>
+            <div class="message-content">
+                ${contentHtml}
+            </div>
+            <span class="timestamp">${message.timestamp}</span>
+        `;
+
+        messagesDiv.appendChild(newMessage);
     }
 
-    messagesDiv.appendChild(newMessage);
-}
+    function appendMessage(timestamp, username, text) {
+        const newMessage = document.createElement('div');
+        const messageClass = username === window.username ? 'sender-message' : 'receiver-message';
+        newMessage.className = `message ${messageClass}`;
 
+        newMessage.innerHTML = `
+            <span class="username">${username}</span>
+            <div class="message-content">
+                <span class="text">${text}</span>
+            </div>
+            <span class="timestamp">${timestamp}</span>
+        `;
+        messagesDiv.appendChild(newMessage);
+    }
 
-
-function appendMessage(timestamp, username, text) {
-    const newMessage = document.createElement('div');
-    newMessage.classList.add('message'); // Use the 'message' class for consistent styling
-    newMessage.innerHTML = `
-        <div><span class="timestamp">[${timestamp}]</span>
-        <strong class="username">${username}</strong>:
-        <span class="text">${text}</span></div>`;
-    messagesDiv.appendChild(newMessage); // Append messages at the bottom
-}
-
-
-
-
-   function fetchMessages() {
-    fetch('/getMessages')  // Fetch messages sorted by timestamp ASC from the backend
-        .then(response => response.json())
-        .then(messages => {
-            messages.forEach(message => {
-                const newMessage = document.createElement('div');
-                newMessage.classList.add('message'); // Use the 'message' class for consistent styling
-                newMessage.innerHTML = `
-                    <div><span class="timestamp">[${message.timestamp}]</span>
-                    <strong class="username">${message.username}</strong>:
-                    <span class="text">${message.text}</span></div>`;
-                messagesDiv.appendChild(newMessage);  // Append messages at the bottom
+    function fetchMessages() {
+        fetch('/getMessages')
+            .then(response => response.json())
+            .then(messages => {
+                messages.forEach(message => {
+                    appendMessage(message.timestamp, message.username, message.text);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
+    }
 
-            // Scroll to the bottom after loading all messages
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        });
-}
-
-
-
-
-    // Call fetchMessages on page load to display previous messages
     window.onload = fetchMessages;
 
-    sendButton.onclick = () => {
-        const message = input.value;
-        if (message) {
-            ws.send(message);
-            input.value = '';
+    fileInput.onchange = () => {
+        const file = fileInput.files[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert("File size exceeds the 10 MB limit.");
+                return;
+            }
+
+            selectedFile = file;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
         }
     };
 
-fileInput.onchange = () => {
-    const file = fileInput.files[0];
-    if (file) {
-        if (file.size > 10 * 1024 * 1024) { // Check if file exceeds 10 MB
-            alert("File size exceeds the 10 MB limit.");
-            return;
+    deletePreviewBtn.onclick = () => {
+        previewContainer.style.display = 'none';
+        imagePreview.src = '';
+        selectedFile = null;
+        fileInput.value = '';
+    };
+
+    sendPreviewBtn.onclick = () => {
+        if (selectedFile) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const arrayBuffer = reader.result;
+                ws.send(arrayBuffer);
+
+                previewContainer.style.display = 'none';
+                imagePreview.src = '';
+                selectedFile = null;
+                fileInput.value = '';
+            };
+            reader.readAsArrayBuffer(selectedFile);
         }
+    };
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            const arrayBuffer = reader.result;
-            ws.send(arrayBuffer); // Send file as binary data
-        };
-        reader.readAsArrayBuffer(file); // Read file as ArrayBuffer
+    const emojiMap = {
+        ":smile:": "😄",
+        ":heart:": "❤️",
+        ":thumbsup:": "👍",
+        ":laugh:": "😂",
+        ":cry:": "😢",
+    };
+
+    const chatInput = document.getElementById("input");
+    const suggestionsBox = document.getElementById("emoji-suggestions");
+
+
+chatInput.addEventListener("input", () => {
+    const text = chatInput.innerText;
+    const lastWord = text.split(" ").pop();
+
+    const matches = Object.keys(emojiMap).filter((key) =>
+        key.startsWith(lastWord)
+    );
+
+    if (matches.length > 0) {
+        suggestionsBox.innerHTML = matches
+            .map((key) => `<div data-emoji="${key}">${key} ${emojiMap[key]}</div>`)
+            .join("");
+        suggestionsBox.style.display = "block";
+
+        const rect = chatInput.getBoundingClientRect();
+        suggestionsBox.style.top = `${rect.bottom + window.scrollY}px`;
+        suggestionsBox.style.left = `${rect.left + window.scrollX}px`;
+
+        suggestionsBox.querySelectorAll("div").forEach((div) => {
+            div.addEventListener("click", () => {
+                const selectedEmoji = emojiMap[div.getAttribute("data-emoji")];
+
+                chatInput.innerHTML = chatInput.innerHTML.replace(
+                    new RegExp(`${lastWord}$`),
+                    selectedEmoji
+                );
+
+                suggestionsBox.style.display = "none";
+                chatInput.focus();
+            });
+        });
     } else {
-        alert("No file selected or invalid file.");
+        suggestionsBox.style.display = "none";
     }
-};
+});
 
-
-    input.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
+input.addEventListener("keypress", (event) => {
+    if (event.key === "Enter") {
+        if (selectedFile) {
+            sendPreviewBtn.click();
+        } else {
             sendButton.click();
         }
-    });
+        event.preventDefault();
+    }
+});
+
+sendButton.onclick = () => {
+    if (selectedFile) {
+        sendPreviewBtn.click();
+    } else {
+        const message = input.innerHTML.trim();
+        if (message) {
+            ws.send(message);
+            input.innerHTML = '';
+        }
+    }
+};
 </script>
 </body>
 </html>

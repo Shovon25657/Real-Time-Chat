@@ -33,6 +33,9 @@ public class ChatServer {
         }
     }
 
+
+
+
     static void broadcast(String message) {
         synchronized (clientWriters) {
             for (Iterator<PrintWriter> it = clientWriters.iterator(); it.hasNext(); ) {

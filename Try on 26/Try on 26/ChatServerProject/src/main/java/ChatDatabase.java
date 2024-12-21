@@ -21,7 +21,7 @@ public class ChatDatabase {
 
     public static void saveFileMessage(String username, String fileName, String fileType) {
         String query = "INSERT INTO messages (username, message, file_path, file_type, timestamp) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/chatdb", "root","");
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3307/chatdb", "root", "");
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             stmt.setString(1, username);
