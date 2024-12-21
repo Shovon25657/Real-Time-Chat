@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Chat System</title>
+    <style>
+        /* Reset and modern styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 1rem;
+        }
+
+        .auth-container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .auth-header h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            color: #333333;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: #f9f9f9;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background-color: #ffffff;
+        }
+
+        .auth-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            color: #ffffff;
+            background: #4a90e2;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+
+        .auth-button:hover {
+            background: #357abd;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .auth-links a {
+            text-decoration: none;
+            color: #4a90e2;
+            font-size: 0.9rem;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .auth-links a:hover {
+            color: #357abd;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-header">
+        <h1>Sign Up</h1>
+    </div>
+    <form id="signupForm">
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" placeholder="Enter your first name" required>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" placeholder="Enter your last name" required>
+        </div>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Choose a username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Create a password" required>
+        </div>
+        <div class="form-group">
+            <label for="businessName">Business Name</label>
+            <input type="text" id="businessName" placeholder="Enter your business name" required>
+        </div>
+        <div class="form-group">
+            <label for="businessCategory">Business Category</label>
+            <select id="businessCategory" required>
+                <option value="">Select a category</option>
+                <option value="clothing">Clothing</option>
+                <option value="toyshop">Toy Shop</option>
+                <option value="electronics">Electronics</option>
+                <option value="food">Food & Beverages</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <button type="submit" class="auth-button">Sign Up</button>
+    </form>
+    <div class="auth-links">
+        <a href="login.html">Already have an account? Login</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const userData = {
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value,
+            businessName: document.getElementById('businessName').value,
+            businessCategory: document.getElementById('businessCategory').value
+        };
+
+        // Get existing users or initialize empty array
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+        // Check if username already exists
+        if (users.some(user => user.username === userData.username)) {
+            alert('Username already exists!');
+            return;
+        }
+
+        // Add new user
+        users.push(userData);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        alert('Registration successful! Please login.');
+        window.location.href = 'login.html';
+    });
+</script>
+</body>
+</html>

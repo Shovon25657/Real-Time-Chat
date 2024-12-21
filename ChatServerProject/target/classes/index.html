@@ -3,84 +3,819 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Modern Chat Room</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        #status { margin-bottom: 10px; color: green; }
-        #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; margin-bottom: 10px; }
-        #input { width: 80%; }
-        #send { width: 18%; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f2f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+      .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
+            gap: 16px;
+        }
+
+//search
+
+  .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+
+         .search-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 600px;
+        }
+
+  .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 6px 12px;
+            flex: 1;
+        }
+
+
+         .search-input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            width: 100%;
+            outline: none;
+        }
+
+          .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+           .search-icon {
+            color: white;
+            margin-right: 8px;
+        }
+
+      .highlight {
+    background-color:rgb(229, 44, 44);
+    padding: 2px;
+    border-radius: 2px;
+}
+
+         .search-results {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+            white-space: nowrap;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: none;
+        }
+
+       .search-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+
+        .search-nav button {
+            padding: 2px 8px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-nav button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: #ffffff;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            max-width: 70%;
+            clear: both;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 16px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .sender-message {
+            float: right;
+            margin-left: 30%;
+        }
+
+        .sender-message .message-content {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .receiver-message {
+            float: left;
+            margin-right: 30%;
+        }
+
+        .receiver-message .message-content {
+            background: #f0f2f5;
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message img, .message video {
+            max-width: 300px;
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .sender-message .username {
+            color: #4f46e5;
+            text-align: right;
+        }
+
+        .receiver-message .username {
+            color: #4b5563;
+        }
+
+        .chat-footer {
+            display: flex;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .text-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 24px;
+            min-height: 48px;
+            max-height: 120px;
+            outline: none;
+            overflow-y: auto;
+            transition: border-color 0.2s;
+            background: #ffffff;
+        }
+
+        .text-input:focus {
+            border-color: #4f46e5;
+        }
+
+        .text-input:empty::before {
+            content: attr(placeholder);
+            color: #9ca3af;
+            pointer-events: none;
+        }
+
+        .emoji-button {
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #4f46e5;
+            font-size: 20px;
+            transition: background-color 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-button:hover {
+            background: #e5e7eb;
+        }
+
+        .file-upload {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .file-upload label {
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #4f46e5;
+            font-size: 20px;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-upload label:hover {
+            background: #e5e7eb;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .preview-container {
+            display: none;
+            padding: 16px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .preview-image {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 12px;
+            margin-right: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .preview-controls button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .delete-preview {
+            background: #ef4444;
+            color: white;
+        }
+
+        .delete-preview:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .send-preview {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+        }
+
+        .send-preview:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .emoji-picker {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .emoji-category {
+            margin-bottom: 12px;
+        }
+
+        .emoji-category-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+
+        .emoji-item {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        .emoji-item:hover {
+            background: #f3f4f6;
+        }
+
+        /* Clear fix for floating messages */
+        .chat-messages::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
     </style>
 </head>
 <body>
-<h1>Chat Room</h1>
-<div id="status">Connecting...</div> <!-- Display connection status -->
-<div id="messages"></div> <!-- Message area -->
-<input id="input" type="text" placeholder="Enter your message">
-<button id="send">Send</button>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <div class="header-title">Modern Chat Room</div>
+        <div class="search-container">
+            <div class="search-input-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" placeholder="Search messages..." id="searchInput">
+            </div>
+            <div class="search-results" id="searchResults">
+                <span id="resultCount"></span>
+                <div class="search-nav">
+                    <button id="prevResult">↑</button>
+                    <button id="nextResult">↓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="chat-messages" id="messages">
+        <!-- Chat messages will appear here -->
+    </div>
+    <div class="preview-container" id="previewContainer">
+        <img id="imagePreview" class="preview-image" />
+        <div class="preview-controls">
+            <button class="delete-preview" id="deletePreview">Delete</button>
+            <button class="send-preview" id="sendPreview">Send</button>
+        </div>
+    </div>
+    <div class="chat-footer">
+        <div class="file-upload">
+            <label for="fileInput">📎</label>
+            <input id="fileInput" type="file" accept="image/png,image/jpeg,image/gif,video/mp4">
+        </div>
+        <div id="input" class="text-input" contenteditable="true" placeholder="Type your message..."></div>
+        <button id="emojiButton" class="emoji-button">😊</button>
+        <button id="send" class="send-button">Send</button>
+    </div>
+</div>
+
+<div id="emojiPicker" class="emoji-picker">
+    <!-- Emoji picker content will be generated dynamically -->
+</div>
 
 <script>
-    const statusDiv = document.getElementById('status');
     const messagesDiv = document.getElementById('messages');
-    const input = document.getElementById('input');
-    const sendButton = document.getElementById('send');
+        const input = document.getElementById('input');
+        const sendButton = document.getElementById('send');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const deletePreviewBtn = document.getElementById('deletePreview');
+        const sendPreviewBtn = document.getElementById('sendPreview');
+        const emojiButton = document.getElementById('emojiButton');
+        const emojiPicker = document.getElementById('emojiPicker');
 
-    let username = null;
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const resultCount = document.getElementById('resultCount');
+    const prevResult = document.getElementById('prevResult');
+    const nextResult = document.getElementById('nextResult');
 
-    // Prompt for a username when the page loads
-    while (!username) {
-        username = prompt("Enter your username:");
+        let username = null;
+        let selectedFile = null;
+    let currentMatchIndex = -1;
+    let matches = [];
+
+
+    function performSearch(searchTerm) {
+        // Remove existing highlights
+        const existingHighlights = messagesDiv.querySelectorAll('.highlight');
+        existingHighlights.forEach(highlight => {
+            const parent = highlight.parentNode;
+            parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+        });
+
+        if (!searchTerm) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+ // Find all message text elements
+        const messageTexts = messagesDiv.querySelectorAll('.message-content .text');
+        matches = [];
+
+        messageTexts.forEach((element, elementIndex) => {
+            const text = element.textContent;
+            const regex = new RegExp(searchTerm, 'gi');
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                matches.push({
+                    element: element,
+                    position: match.index,
+                    text: match[0]
+                });
+            }
+        });
+
+
+ // Highlight matches
+        matches.forEach(match => {
+            const text = match.element.textContent;
+            const highlightedText = text.replace(
+                new RegExp(searchTerm, 'gi'),
+                match => `<span class="highlight">${match}</span>`
+            );
+            match.element.innerHTML = highlightedText;
+        });
+
+        // Update search results UI
+        if (matches.length > 0) {
+            searchResults.style.display = 'block';
+            currentMatchIndex = 0;
+            scrollToMatch(currentMatchIndex);
+            updateResultCount();
+        } else {
+            searchResults.style.display = 'block';
+            resultCount.textContent = 'No matches found';
+        }
     }
 
-    // Initialize WebSocket connection
-    const ws = new WebSocket('ws://localhost:8080/chat'); // Ensure this matches your WebSocket server
-
-    // Log WebSocket events and update UI
-    ws.onopen = () => {
-        console.log("WebSocket connection established.");
-        statusDiv.textContent = "Connected to the server.";
-        statusDiv.style.color = "green";
-
-        // Send username as the first message
-        ws.send(username);
-    };
-
-    ws.onmessage = (event) => {
-        console.log("Message received:", event.data);
-        const newMessage = document.createElement('div');
-        newMessage.textContent = event.data;
-        messagesDiv.appendChild(newMessage);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll to the latest message
-    };
-
-    ws.onclose = () => {
-        console.log("WebSocket connection closed.");
-        statusDiv.textContent = "Disconnected from the server.";
-        statusDiv.style.color = "red";
-    };
-
-    ws.onerror = (error) => {
-        console.error("WebSocket error:", error);
-        statusDiv.textContent = "Error connecting to the server.";
-        statusDiv.style.color = "orange";
-    };
-
-    // Handle sending messages to the server
-    sendButton.onclick = () => {
-        const message = input.value;
-        if (message) {
-            console.log("Sending message:", message);
-            ws.send(message);
-            input.value = ''; // Clear the input field after sending
+function scrollToMatch(index) {
+        if (matches[index]) {
+            const element = matches[index].element;
+            const highlight = element.querySelector('.highlight');
+            if (highlight) {
+                highlight.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
         }
-    };
+    }
 
-    // Allow pressing "Enter" to send messages
-    input.addEventListener("keypress", (event) => {
-        if (event.key === "Enter") {
-            sendButton.click();
+    function updateResultCount() {
+        if (matches.length > 0) {
+            resultCount.textContent = `${currentMatchIndex + 1} of ${matches.length} matches`;
+        }
+    }
+
+    searchInput.addEventListener('input', (e) => {
+        performSearch(e.target.value);
+    });
+
+    prevResult.addEventListener('click', () => {
+        if (matches.length > 0) {
+            currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+            scrollToMatch(currentMatchIndex);
+            updateResultCount();
         }
     });
+
+    nextResult.addEventListener('click', () => {
+        if (matches.length > 0) {
+            currentMatchIndex = (currentMatchIndex + 1) % matches.length;
+            scrollToMatch(currentMatchIndex);
+            updateResultCount();
+        }
+    });
+
+    // Add search shortcut (Ctrl/Cmd + F)
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+    });
+
+
+        // Emoji categories and their emojis
+        const emojiCategories = {
+            "Smileys & Emotion": ["😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊", "😇", "🙂", "😉", "😌", "😍", "🥰", "😘"],
+            "People & Body": ["👋", "🤚", "✋", "🖐️", "👌", "🤌", "🤏", "✌️", "🤞", "🫰", "🤟", "🤘", "🤙", "👈", "👉"],
+            "Animals & Nature": ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵"],
+            "Food & Drink": ["🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🫐", "🍈", "🍒", "🍑", "🥭", "🍍", "🥥"],
+            "Activities": ["⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉", "🥏", "🎱", "🪀", "🏓", "🏸", "🏒", "🏑"],
+            "Objects": ["⌚", "📱", "📲", "💻", "⌨️", "🖥️", "🖨️", "🖱️", "🖲️", "🕹️", "🗜️", "💽", "💾", "💿", "📀"]
+        };
+
+        // Generate emoji picker content
+        function generateEmojiPicker() {
+            let html = '';
+            for (const [category, emojis] of Object.entries(emojiCategories)) {
+                html += `
+                    <div class="emoji-category">
+                        <div class="emoji-category-title">${category}</div>
+                        <div class="emoji-grid">
+                            ${emojis.map(emoji => `
+                                <div class="emoji-item" data-emoji="${emoji}">${emoji}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            emojiPicker.innerHTML = html;
+
+            // Add click event listeners to emoji items
+            const emojiItems = emojiPicker.querySelectorAll('.emoji-item');
+            emojiItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const emoji = item.getAttribute('data-emoji');
+                    insertEmoji(emoji);
+                    emojiPicker.style.display = 'none';
+                });
+            });
+        }
+
+        // Insert emoji at cursor position or at the end
+        function insertEmoji(emoji) {
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+
+            // Create a text node with the emoji
+            const emojiNode = document.createTextNode(emoji);
+
+            // If the input is empty, just append the emoji
+            if (input.innerHTML.trim() === '') {
+                input.innerHTML = '';
+                input.appendChild(emojiNode);
+            } else {
+                // Insert at cursor position
+                range.insertNode(emojiNode);
+            }
+
+            // Move cursor after the emoji
+            range.setStartAfter(emojiNode);
+            range.setEndAfter(emojiNode);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Focus back on input
+            input.focus();
+        }
+
+        // Toggle emoji picker
+        emojiButton.addEventListener('click', () => {
+            if (emojiPicker.style.display === 'none' || !emojiPicker.style.display) {
+                emojiPicker.style.display = 'block';
+            } else {
+                emojiPicker.style.display = 'none';
+            }
+        });
+
+        // Close emoji picker when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!emojiPicker.contains(e.target) && e.target !== emojiButton) {
+                emojiPicker.style.display = 'none';
+            }
+        });
+
+        // Initialize emoji picker
+        generateEmojiPicker();
+
+        while (!username) {
+            username = prompt("Enter your username:");
+        }
+
+        const ws = new WebSocket('wss://9534-203-78-147-0.ngrok-free.app/chat');
+
+        ws.onopen = () => {
+            ws.send(username);
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (Array.isArray(data)) {
+                data.forEach((message) => renderMessage(message));
+            } else {
+                renderMessage(data);
+            }
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        function renderMessage(message) {
+            const newMessage = document.createElement('div');
+            const messageClass = message.username === username ? 'sender-message' : 'receiver-message';
+            newMessage.className = `message ${messageClass}`;
+
+            let contentHtml = '';
+            if (message.file_path) {
+                if (message.file_type === 'image') {
+                    contentHtml = `<img src="/uploads/${message.file_path}" alt="Image" />`;
+                } else if (message.file_type === 'video') {
+                    contentHtml = `
+                        <video controls>
+                            <source src="/uploads/${message.file_path}" type="video/mp4">
+                        </video>`;
+                }
+            } else {
+                // Ensure the message text is properly escaped but preserve emojis
+                const textContent = document.createElement('div');
+                textContent.textContent = message.text;
+                contentHtml = `<span class="text">${textContent.innerHTML}</span>`;
+            }
+
+            newMessage.innerHTML = `
+                <span class="username">${message.username}</span>
+                <div class="message-content">
+                    ${contentHtml}
+                </div>
+                <span class="timestamp">${message.timestamp}</span>
+            `;
+
+            messagesDiv.appendChild(newMessage);
+        }
+        function appendMessage(timestamp, username, text) {
+            const newMessage = document.createElement('div');
+            const messageClass = username === window.username ? 'sender-message' : 'receiver-message';
+            newMessage.className = `message ${messageClass}`;
+
+            newMessage.innerHTML = `
+                <span class="username">${username}</span>
+                <div class="message-content">
+                    <span class="text">${text}</span>
+                </div>
+                <span class="timestamp">${timestamp}</span>
+            `;
+            messagesDiv.appendChild(newMessage);
+        }
+
+        function fetchMessages() {
+            fetch('/getMessages')
+                .then(response => response.json())
+                .then(messages => {
+                    messages.forEach(message => {
+                        appendMessage(message.timestamp, message.username, message.text);
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                });
+        }
+
+        window.onload = fetchMessages;
+
+        fileInput.onchange = () => {
+            const file = fileInput.files[0];
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) {
+                    alert("File size exceeds the 10 MB limit.");
+                    return;
+                }
+
+                selectedFile = file;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        deletePreviewBtn.onclick = () => {
+            previewContainer.style.display = 'none';
+            imagePreview.src = '';
+            selectedFile = null;
+            fileInput.value = '';
+        };
+
+        sendPreviewBtn.onclick = () => {
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const arrayBuffer = reader.result;
+                    ws.send(arrayBuffer);
+
+                    previewContainer.style.display = 'none';
+                    imagePreview.src = '';
+                    selectedFile = null;
+                    fileInput.value = '';
+                };
+                reader.readAsArrayBuffer(selectedFile);
+            }
+        };
+
+        input.addEventListener("keypress", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                if (selectedFile) {
+                    sendPreviewBtn.click();
+                } else {
+                    sendButton.click();
+                }
+                event.preventDefault();
+            }
+        });
+
+    sendButton.onclick = () => {
+        if (selectedFile) {
+            sendPreviewBtn.click();
+        } else {
+            const message = input.innerHTML.trim();
+            if (message) {
+                // Send the actual text content including emojis
+                ws.send(input.innerText);
+                input.innerHTML = '';
+            }
+        }
+        };
 </script>
 </body>
 </html>

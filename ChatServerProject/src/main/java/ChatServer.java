@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -31,6 +33,9 @@ public class ChatServer {
         }
     }
 
+
+
+
     static void broadcast(String message) {
         synchronized (clientWriters) {
             for (Iterator<PrintWriter> it = clientWriters.iterator(); it.hasNext(); ) {
@@ -44,7 +49,23 @@ public class ChatServer {
             }
         }
         addMessageToHistory(message);
+        saveMessageToDatabase(message); // Save message to DB
     }
+
+    static void saveMessageToDatabase(String message) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "INSERT INTO messages (username, message) VALUES (?, ?)";
+            try (var stmt = conn.prepareStatement(query)) {
+                String username = message.split(":")[0]; // Assuming message format: "username: message"
+                stmt.setString(1, username);
+                stmt.setString(2, message);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     static void addMessageToHistory(String message) {
         if (chatHistory.size() > 50) {
@@ -55,10 +76,22 @@ public class ChatServer {
 
     static void sendChatHistory(PrintWriter writer) {
         synchronized (chatHistory) {
-            int start = Math.max(0, chatHistory.size() - 10); // Limit to last 10 messages
-            for (int i = start; i < chatHistory.size(); i++) {
-                writer.println(chatHistory.get(i));
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                // Fetch the oldest messages first
+                String query = "SELECT username, message, timestamp FROM messages ORDER BY timestamp ASC LIMIT 10";
+                try (var stmt = conn.prepareStatement(query); var rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        String username = rs.getString("username");
+                        String message = rs.getString("message");
+                        String timestamp = rs.getString("timestamp");
+                        writer.println(username + " [" + timestamp + "]: " + message);
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
+
+
 }
